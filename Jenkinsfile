@@ -63,24 +63,26 @@ pipeline {
                 """
             }
         }
+
+        stage('Cleanup Docker') {
+            steps {
+                // Catch errors so cleanup doesn't fail the build
+                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                    echo 'Cleaning up Docker containers...'
+                    bat """
+                        docker ps -a
+                        docker stop %CONTAINER_NAME% || echo 'Container not running'
+                        docker rm %CONTAINER_NAME% || echo 'Container not found'
+                    """
+                }
+            }
+        }
     }
 
     post {
-        always {
-            script {
-                echo 'Cleaning up Docker containers...'
-                bat """
-                    docker ps -a
-                    docker stop %CONTAINER_NAME% || echo 'Container not running'
-                    docker rm %CONTAINER_NAME% || echo 'Container not found'
-                """
-            }
-        }
-
         success {
             echo 'Pipeline completed successfully!'
         }
-
         failure {
             echo 'Pipeline failed. Check logs for details.'
         }
