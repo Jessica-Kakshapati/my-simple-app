@@ -31,11 +31,11 @@ pipeline {
             steps {
                 echo 'Running SonarQube scan...'
                 bat """
-                    sonar-scanner \
-                    -Dsonar.projectKey=my-simple-app \
-                    -Dsonar.sources=. \
-                    -Dsonar.host.url=http://sonarqube:9000 \
-                    -Dsonar.login=${SONAR_TOKEN}
+                    sonar-scanner ^
+                    -Dsonar.projectKey=my-simple-app ^
+                    -Dsonar.sources=. ^
+                    -Dsonar.host.url=http://sonarqube:9000 ^
+                    -Dsonar.login=%SONAR_TOKEN%
                 """
             }
         }
@@ -43,22 +43,24 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 echo 'Building Docker image...'
-                bat 'docker build -t $DOCKER_IMAGE .'
+                bat 'docker build -t %DOCKER_IMAGE% .'
             }
         }
 
         stage('Optional: Run Docker Container') {
             steps {
                 echo 'Running Docker container for testing...'
-                bat 'docker run -d -p 3000:3000 $DOCKER_IMAGE'
+                bat 'docker run -d -p 3000:3000 %DOCKER_IMAGE%'
             }
         }
     }
 
     post {
         always {
-            echo 'Cleaning up workspace...'
-            bat 'docker ps -a'
+            node {
+                echo 'Cleaning up workspace...'
+                bat 'docker ps -a'
+            }
         }
         success {
             echo 'Pipeline completed successfully!'
