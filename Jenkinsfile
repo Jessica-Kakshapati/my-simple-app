@@ -2,14 +2,15 @@ pipeline {
     agent any
 
     environment {
-        SONAR_TOKEN = credentials('19bac3c7245671221af2316f4c21c9826aa')
+        SONAR_TOKEN = credentials('19bac3c7245671221af2316f4c21c9826aa') // replace with your Jenkins credential ID
         DOCKER_IMAGE = "my-simple-app:latest"
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/<YOUR_USERNAME>/my-simple-app.git'
+                echo 'Checking out repository...'
+                git branch: 'main', url: 'https://github.com/Jessica-Kakshapati/my-simple-app.git'
             }
         }
 
@@ -35,7 +36,7 @@ pipeline {
                     -Dsonar.projectKey=my-simple-app ^
                     -Dsonar.sources=. ^
                     -Dsonar.host.url=http://sonarqube:9000 ^
-                    -Dsonar.login=%SONAR_TOKEN%
+                    -Dsonar.login=${SONAR_TOKEN}
                 """
             }
         }
@@ -43,14 +44,14 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 echo 'Building Docker image...'
-                bat 'docker build -t %DOCKER_IMAGE% .'
+                bat "docker build -t %DOCKER_IMAGE% ."
             }
         }
 
         stage('Optional: Run Docker Container') {
             steps {
                 echo 'Running Docker container for testing...'
-                bat 'docker run -d -p 3000:3000 %DOCKER_IMAGE%'
+                bat "docker run -d -p 3000:3000 %DOCKER_IMAGE%"
             }
         }
     }
