@@ -58,7 +58,7 @@ pipeline {
     post {
         always {
             echo 'Cleaning up workspace...'
-            sh 'docker ps -a'
+            bat 'docker ps -a'
         }
         success {
             echo 'Pipeline completed successfully!'
