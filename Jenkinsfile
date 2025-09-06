@@ -1,9 +1,14 @@
 pipeline {
     agent any
 
+    tools {
+        nodejs 'NodeJS-16' // Jenkins NodeJS installation name
+    }
+
     environment {
-        SONAR_TOKEN = credentials('19bac3c7245671221af2316f4c21c9826aa') // replace with your Jenkins credential ID
+        SONAR_TOKEN = credentials('19bac3c7245671221af2316f4c21c9826aa') // Jenkins credential ID
         DOCKER_IMAGE = "my-simple-app:latest"
+        CONTAINER_NAME = "my-simple-app-test"
     }
 
     stages {
@@ -17,7 +22,14 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 echo 'Installing Node.js dependencies...'
-                bat 'npm install'
+                // Caching node_modules to speed up builds (optional)
+                script {
+                    if (!fileExists('node_modules')) {
+                        bat 'npm install'
+                    } else {
+                        echo 'Using cached node_modules'
+                    }
+                }
             }
         }
 
@@ -48,24 +60,32 @@ pipeline {
             }
         }
 
-        stage('Optional: Run Docker Container') {
+        stage('Run Docker Container (Optional)') {
             steps {
                 echo 'Running Docker container for testing...'
-                bat "docker run -d -p 3000:3000 %DOCKER_IMAGE%"
+                bat """
+                    docker run -d --name %CONTAINER_NAME% -p 3000:3000 %DOCKER_IMAGE%
+                    timeout /t 10
+                    docker logs %CONTAINER_NAME%
+                """
             }
         }
     }
 
     post {
         always {
-            node {
-             echo 'Cleaning up workspace...'
-             bat 'docker ps -a'
-            }
+            echo 'Cleaning up workspace and Docker containers...'
+            bat """
+                docker ps -a
+                docker stop %CONTAINER_NAME% || echo 'Container not running'
+                docker rm %CONTAINER_NAME% || echo 'Container not found'
+            """
         }
+
         success {
             echo 'Pipeline completed successfully!'
         }
+
         failure {
             echo 'Pipeline failed. Check logs for details.'
         }
