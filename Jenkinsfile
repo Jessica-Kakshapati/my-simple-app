@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        SONAR_TOKEN = credentials('19bac3c7245671221af2316f4c21c9826aa7592a')
+        SONAR_TOKEN = credentials('19bac3c7245671221af2316f4c21c9826aa')
         DOCKER_IMAGE = "my-simple-app:latest"
     }
 
@@ -57,10 +57,8 @@ pipeline {
 
     post {
         always {
-            node {
-                echo 'Cleaning up workspace...'
-                bat 'docker ps -a'
-            }
+            echo 'Cleaning up workspace...'
+            bat 'docker ps -a'
         }
         success {
             echo 'Pipeline completed successfully!'
