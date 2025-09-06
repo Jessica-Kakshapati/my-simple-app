@@ -67,16 +67,21 @@ pipeline {
 
     post {
         always {
-            echo 'Cleaning up Docker containers...'
-            bat """
-                docker ps -a
-                docker stop %CONTAINER_NAME% || echo 'Container not running'
-                docker rm %CONTAINER_NAME% || echo 'Container not found'
-            """
+            // Wrap Docker cleanup in a node block to provide workspace context
+            node {
+                echo 'Cleaning up Docker containers...'
+                bat """
+                    docker ps -a
+                    docker stop %CONTAINER_NAME% || echo 'Container not running'
+                    docker rm %CONTAINER_NAME% || echo 'Container not found'
+                """
+            }
         }
+
         success {
             echo 'Pipeline completed successfully!'
         }
+
         failure {
             echo 'Pipeline failed. Check logs for details.'
         }
