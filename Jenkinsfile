@@ -67,8 +67,7 @@ pipeline {
 
     post {
         always {
-            // Wrap Docker cleanup in a node block to provide workspace context
-            node {
+            script {
                 echo 'Cleaning up Docker containers...'
                 bat """
                     docker ps -a
