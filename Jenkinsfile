@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        nodejs 'NodeJS-16' // Jenkins NodeJS installation name
+        nodejs 'NodeJS-16' // Name configured in Jenkins Global Tool Configuration
     }
 
     environment {
@@ -22,14 +22,7 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 echo 'Installing Node.js dependencies...'
-                // Caching node_modules to speed up builds (optional)
-                script {
-                    if (!fileExists('node_modules')) {
-                        bat 'npm install'
-                    } else {
-                        echo 'Using cached node_modules'
-                    }
-                }
+                bat 'npm install'
             }
         }
 
@@ -74,18 +67,16 @@ pipeline {
 
     post {
         always {
-            echo 'Cleaning up workspace and Docker containers...'
+            echo 'Cleaning up Docker containers...'
             bat """
                 docker ps -a
                 docker stop %CONTAINER_NAME% || echo 'Container not running'
                 docker rm %CONTAINER_NAME% || echo 'Container not found'
             """
         }
-
         success {
             echo 'Pipeline completed successfully!'
         }
-
         failure {
             echo 'Pipeline failed. Check logs for details.'
         }
